@@ -1,47 +1,59 @@
-# EchoCancel — keep your speakers on, send only your voice to Discord
-
-**Stop game sounds, YouTube, music and your friends' voices from leaking out of your speakers into your microphone.**
-EchoCancel is a tiny Windows tray app that does real-time acoustic echo cancellation (the same WebRTC AEC3 engine used by Chrome and Google Meet) using what your speakers are *actually playing* as a reference, then sends only your voice to Discord through a virtual microphone.
-
-No headset required. No GPU. Runs 100% locally. ~0.5 % CPU, ~25 MB RAM.
-
-[**⬇ Download the installer (Windows 10/11, 64-bit)**](../../releases/latest) · [Türkçe açıklama aşağıda](#türkçe)
+<p align="center">
+  <img src="docs/images/banner.png" alt="EchoCancel — keep your speakers on, send only your voice to Discord" width="100%">
+</p>
 
 <p align="center">
-  <img src="docs/images/general.png" width="300" alt="EchoCancel main window: speakers playing at -26 dB while nothing is sent to Discord">
-  &nbsp;&nbsp;
-  <img src="docs/images/settings.png" width="300" alt="EchoCancel settings tab">
+  <a href="../../releases/latest"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows%2010%20%2F%2011-2ea44f?style=for-the-badge&logo=windows&logoColor=white"></a>
+  &nbsp;
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge"></a>
+  &nbsp;
+  <a href="#türkçe"><img alt="Türkçe" src="https://img.shields.io/badge/dil-T%C3%BCrk%C3%A7e-e30a17?style=for-the-badge"></a>
 </p>
-<p align="center"><sub>Left: speakers are playing (purple bar) but nothing reaches Discord (green bar stays empty) until you speak.</sub></p>
 
----
+# EchoCancel
 
-## The problem
+**Use your speakers *and* your mic in Discord — without everyone hearing your game, your YouTube video, or themselves.**
 
-You use a webcam mic (e.g. Logitech Brio) or a desk mic with **speakers**, not a headset. Everything that comes out of your speakers — the game, a video, your friends talking in Discord — goes back into your mic, and your friends hear themselves and your game. Discord's own noise suppression (Krisp) and echo cancellation don't fully fix this, especially for loud game audio, music and videos.
+If you play or chat with **speakers instead of a headset**, everything that comes out of them — game sounds, music, videos, your friends talking — goes straight back into your microphone. Your friends hear an echo of themselves and your game on top of your voice. Discord's own *Echo Cancellation* only knows about Discord's own sound, and *Krisp* is built for background noise, so game audio, music and videos from other apps still get through.
 
-## How EchoCancel fixes it
+**EchoCancel fixes that.** It listens to *exactly* what your speakers are playing and subtracts it from your microphone in real time, using the same **WebRTC AEC3** echo canceller that powers Chrome and Google Meet. Then it mutes the output while you're silent, so Discord gets **only your voice** — and true silence the rest of the time.
 
-```
- Game / video / Discord audio ──► Your speakers  (keep playing normally)
-                                    │
-                                    └─ copy via WASAPI loopback ───────────┐ reference
- Microphone ── capture ──► [ align ] ──► WebRTC AEC3 echo canceller + noise suppression
-                                                    │
-                                          voice gate (mutes when you're silent,
-                                          30 ms look-ahead so first words aren't cut)
-                                                    │
-                                     "CABLE Input"  (EchoCancel writes here)
-                                                    │
-                     Discord input device = "CABLE Output" (VB-CABLE virtual mic)
-```
+* 🎧 **No headset needed** — keep using your speakers and webcam / desk mic
+* 🗣️ **Talk over a video or game and still be heard** — it's real echo cancellation, not just a noise gate
+* 🔇 **Silence when you're quiet** — a voice gate with look-ahead so your first word isn't cut
+* 🛡️ **Fail-safe** — if anything stops, Discord gets silence, never your raw echo-filled mic
+* ⚡ **Light** — ~0.5 % CPU, ~25 MB RAM, no GPU, 100 % local, nothing is uploaded anywhere
+* 🖱️ **One-click install** — sets up the virtual microphone for you; English / Türkçe interface
 
-* **Real echo cancellation, not just a noise gate** – it knows exactly what your speakers play and subtracts it, so you can talk *while* a video or game is playing and still be heard.
-* **Voice gate after AEC** – when you stop talking, Discord receives true digital silence. A short look-ahead keeps the start of words.
-* **Clock drift and delay compensation** – mic, speakers and the virtual cable run on different hardware clocks; EchoCancel keeps them aligned.
-* **Fail-safe** – if anything stops (device unplugged, app closed, error), Discord gets *silence*, never your raw, echo-filled mic.
-* **Recovers by itself** when you unplug/replug your mic or switch speakers/headphones.
-* **Tray app** with a small dark window, live level meters, Turkish / English UI, start with Windows, one-click uninstall.
+## See the difference
+
+<p align="center">
+  <img src="docs/images/before-after.png" alt="Waveforms: what the speakers play, what the mic hears (voice plus echo), and what Discord receives with EchoCancel (only the voice)" width="100%">
+</p>
+
+Top: what your speakers play. Middle: what your microphone picks up — your voice **plus** the speaker echo. Bottom: what Discord gets from EchoCancel — **only your voice**, and silence whenever only the speakers are playing (even right after a device restart at 54 s).
+<sub>Real audio from the project's offline simulation: real speech recordings played through a synthetic room. A real room is harder; see [Performance](#performance-measured).</sub>
+
+## How it works
+
+<p align="center">
+  <img src="docs/images/how-it-works.png" alt="Diagram: speakers are copied via WASAPI loopback into EchoCancel, which removes the echo from the microphone and sends only your voice to Discord through VB-CABLE" width="100%">
+</p>
+
+* **Real echo cancellation, not just a gate** – EchoCancel knows exactly what your speakers play, so it can remove it even *while* you talk.
+* **Delay and clock-drift compensation** – the mic, speakers and virtual cable run on different hardware clocks; EchoCancel keeps them aligned.
+* **Recovers by itself** when you unplug or replug your mic or switch between speakers and headphones.
+
+## The app
+
+<p align="center">
+  <img src="docs/images/general.png" width="300" alt="EchoCancel General tab: speakers are playing at -26 dB but nothing is sent to Discord">
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/images/settings.png" width="300" alt="EchoCancel Settings tab: language, start with Windows, noise suppression, word-onset margin, setup check, uninstall">
+</p>
+<p align="center"><sub><b>General:</b> the speakers are playing (purple bar), but nothing reaches Discord (green bar stays empty) until you speak.<br><b>Settings:</b> language, start with Windows, noise suppression, setup check and one-click uninstall.</sub></p>
+
+It lives in the tray next to the clock. The icon colour shows the state: **grey** off · **orange** waiting / learning the echo · **blue** ready · **green** you're on air.
 
 ## Install (one click)
 
@@ -132,16 +144,25 @@ EchoCancel is MIT-licensed. It uses the **WebRTC Audio Processing Module** (BSD-
 
 ## Türkçe
 
-**EchoCancel, hoparlörün açıkken Discord'a yalnızca senin sesini gönderir.** Hoparlörden çıkan oyun, video, müzik ve arkadaşlarının sesi mikrofonuna girip karşı tarafa gitmez. Kulaklık gerekmez, ekran kartı gerekmez, her şey bilgisayarında çalışır.
+**EchoCancel, hoparlörün açıkken Discord'a yalnızca senin sesini gönderir.**
 
-**Nasıl çalışır:** Hoparlörün o an ne çaldığını (WASAPI loopback) referans alır ve Chrome/Google Meet'in de kullandığı WebRTC AEC3 yankı gidericiyle bunu mikrofon sesinden çıkarır. Sustuğunda Discord'a tam sessizlik gider. Sonuç, VB-CABLE sanal mikrofonu üzerinden Discord'a ulaşır.
+Kulaklık yerine hoparlör kullanıyorsan, hoparlörden çıkan her şey mikrofonuna geri girer: oyun sesi, müzik, YouTube videosu, hatta arkadaşlarının kendi sesleri. Karşı taraf hem oyununu hem de kendi yankısını duyar. Discord'un kendi Yankı Engelleme'si yalnızca Discord'un kendi sesini bilir, Krisp ise arka plan gürültüsü için yapılmıştır. Bu yüzden başka uygulamalardan gelen oyun ve video sesi yine geçer.
+
+**EchoCancel bunu çözer.** Hoparlörün o an tam olarak ne çaldığını dinler (WASAPI loopback) ve Chrome'un da kullandığı WebRTC AEC3 yankı gidericiyle bunu mikrofon sesinden gerçek zamanlı olarak çıkarır. Sustuğunda çıkışı tamamen kapatır. Sonuç VB-CABLE sanal mikrofonu üzerinden Discord'a gider. Yukarıdaki dalga grafiğinde farkı görebilirsin: ortadaki mikrofon sesinde hoparlör yankısı var, en alttaki Discord'a giden seste yalnızca konuşma var.
+
+* 🎧 Kulaklık gerekmez; hoparlör ve kamera/masa mikrofonuyla çalışır
+* 🗣️ Video ya da oyun çalarken konuşsan da sesin gider; bu sadece bir ses kapısı değil, gerçek yankı giderme
+* 🔇 Sustuğunda Discord'a tam sessizlik gider; kelime başları kesilmez
+* 🛡️ Bir şey durursa Discord'a ham mikrofon sesi değil, sessizlik gider
+* ⚡ ~%0,5 CPU, ~25 MB RAM, ekran kartı gerekmez; her şey bilgisayarında çalışır, hiçbir yere ses gönderilmez
+* 🌐 Türkçe ve İngilizce arayüz
 
 **Kurulum:**
 1. [Releases](../../releases/latest) sayfasından **`EchoCancel-Setup-x.y.z.exe`** dosyasını indir, çalıştır: **Evet → Kur → Son**. VB-CABLE yoksa kurulum onu kendisi indirip kurar. Windows sürücü onayı sorarsa **Yükle**'ye bas.
 2. Discord → Kullanıcı Ayarları → Ses ve Görüntü: **Giriş Aygıtı = CABLE Output**, **Yankı Engelleme = kapalı**.
-3. Saatin yanındaki mikrofon simgesine tıkla. Arayüz Türkçe ve İngilizce; dili Ayarlar sekmesinden değiştirebilirsin.
+3. Saatin yanındaki mikrofon simgesine tıkla. Arayüz Windows diline göre Türkçe ya da İngilizce açılır; Ayarlar sekmesinden değiştirebilirsin.
 
-SmartScreen "Windows bilgisayarınızı korudu" derse: **Ek bilgi → Yine de çalıştır** (kurulum dosyası imzasız; kaynak kod bu depoda).
+SmartScreen "Windows bilgisayarınızı korudu" derse: **Ek bilgi → Yine de çalıştır** (kurulum dosyası imzasız; kaynak kodun tamamı bu depoda).
 
 Ayrıntılı Türkçe teknik notlar: [`docs/teknik-notlar-tr.md`](docs/teknik-notlar-tr.md).
 

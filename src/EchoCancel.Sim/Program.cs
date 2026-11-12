@@ -275,6 +275,8 @@ static void RunSim(string nearPath, string farPath, string? outDir, bool earlyEc
     {
         Directory.CreateDirectory(outDir);
         Wav.Write48kMono(Path.Combine(outDir, "mikrofon_ham.wav"), mic);
+        Wav.Write48kMono(Path.Combine(outDir, "hoparlor.wav"), far);
+        Wav.Write48kMono(Path.Combine(outDir, "yakin_konusma.wav"), near);
         Wav.Write48kMono(Path.Combine(outDir, "cikis_kapili.wav"), outG);
         Wav.Write48kMono(Path.Combine(outDir, "cikis_kapisiz.wav"), outR);
     }
