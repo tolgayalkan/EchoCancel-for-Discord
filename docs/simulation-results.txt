@@ -1,0 +1,179 @@
+YankiKes.Sim çıktıları — Linux x64, .NET 8.0.427, Intel(R) Xeon(R) Processor @ 2.10GHz, 2026-11-11
+Yakın uç: whisper.cpp deposundaki jfk.wav (11 sn). Uzak uç: silero-vad deposundaki tests/data/test.wav (60 sn). İkisi de 48 kHz'e çevrildi.
+
+### selftest
+  [TAMAM] DriftBuffer 48000→44100: boşalma 0, taşma 0, sinüs artığı -98.2 dB, öğrenilen düzeltme 200 ppm (uygulanan 200), doluluk 20.2–21.1 ms
+  [TAMAM] DriftBuffer 48000→48000: boşalma 0, taşma 0, sinüs artığı -103.2 dB, öğrenilen düzeltme 200 ppm (uygulanan 200), doluluk 20.2–21.1 ms
+  [TAMAM] DriftBuffer 48000→96000: boşalma 0, taşma 0, sinüs artığı -79.8 dB, öğrenilen düzeltme 200 ppm (uygulanan 200), doluluk 20.2–21.1 ms
+  [TAMAM] StreamResampler 16000→48000: 48000 örnek (beklenen ≈48000), RMS 0.3535 (beklenen 0,3536)
+  [TAMAM] MonoConverter PCM16 stereo: 0.125, -1
+  [TAMAM] MonoConverter PCM24 mono: 0.5, -0.5
+  [TAMAM] MonoConverter float32 96 kHz → 48 kHz: 0.3, 0.4 (parça sınırı aşan ortalama dahil)
+  [TAMAM] NaN girişi ve sessizlik: çıkış sonlu: True, sessizlikte tam sıfır: True
+Tüm sınamalar geçti.
+
+### bench 60
+Çerçeve (10 ms) başına işlem süresi — 6000 çerçeve, 60 s ses
+  ortalama 97.0 µs | medyan 95.5 µs | %99 159.3 µs | en uzun 2147.0 µs
+  tek çekirdek yükü ≈ %0.97  (gerçek zamandan 103 kat hızlı)
+  ses yolunda yönetilen bellek tahsisi: 40 bayt
+
+### sim 
+=== Sentetik oda simülasyonu (yankı gecikmesi: 45 ms) ===
+Referans arabelleği: doluluk ort 20.2 ms (en az 10.8, en çok 25.1), boşalma 0, taşma 0, saat düzeltmesi 127 ppm (uygulanan kayma 150 ppm)
+Mikrofon gecikmesi geçmişi: 0.0s→10ms, 54.0s→10ms | kestirilen ham gecikme 20 ms | çıkışın konuşmaya göre toplam gecikmesi 55.0 ms
+
+[2] Yalnızca hoparlör çalıyor
+  soğuk başlangıç 0-3 s : mikrofonda yankı -28.8 dBFS | AEC sonrası -46.1 | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  yakınsama süresi (AEC+NS bastırması ≥ 20 dB): 1.6 s
+  yakınsamış 26-34 s    : mikrofonda yankı -31.9 dBFS | AEC+NS sonrası -80.4 dBFS (bastırma 48.4 dB) | kapı sonrası sıfır olmayan örnek %0.00, tepe 0.0E+000
+  tüm yalnız-hoparlör bölümleri (soğuk başlangıç ve yeniden başlatma dahil, 33 s): kapının yanlışlıkla açık kaldığı süre 0.00 s (%0.0), yankı koruma eşiği 12 dB
+
+[1] Yalnızca ben konuşuyorum (12-24 s)
+  konuşma etkin çerçevelerin %100.0'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi 0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -0.2 dB (en kötü -0.3) | kapının eklediği kayıp ort 0.00 dB (en kötü 0.00)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -0.2 dB
+
+[3] İkisi aynı anda (34-46 s)
+  mikrofonda konuşma/yankı oranı: 5.2 dB
+  konuşma etkin çerçevelerin %97.6'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi -0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -2.7 dB (en kötü -5.7) | kapının eklediği kayıp ort -0.01 dB (en kötü -0.02)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -2.3 dB
+  yankısız işlenmiş aynı cümleye göre: seviye farkı -2.1 dB | konuşma / (kalan yankı + bozulma) = 5.5 dB
+  konuşma bittikten sonraki 0,5 s (hoparlör sürüyor; kapı kapanma payı): kapı sonrası -89.6 dBFS | mikrofondaki yankı -30.7 dBFS
+
+[sessizlik] 47-50 s
+  kapı sonrası sıfır olmayan örnek %0.00 | kapısız çıkış -82.5 dBFS
+
+[4] Aygıt değişimi benzetimi: 54. saniyede zincir sıfırdan kuruldu (hoparlör çalmaya devam ediyor)
+  yeniden yakınsama süresi: 0.0 s
+  54-57 s: mikrofonda yankı -30.8 dBFS | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  58-62 s: kapı sonrası sıfır olmayan örnek %0.00
+
+### sim --early
+=== Sentetik oda simülasyonu (erken yankı: 8 ms) ===
+Referans arabelleği: doluluk ort 20.2 ms (en az 10.8, en çok 25.1), boşalma 0, taşma 0, saat düzeltmesi 127 ppm (uygulanan kayma 150 ppm)
+Mikrofon gecikmesi geçmişi: 0.0s→10ms, 4.0s→35ms, 54.0s→35ms | kestirilen ham gecikme -17 ms | çıkışın konuşmaya göre toplam gecikmesi 80.0 ms
+
+[2] Yalnızca hoparlör çalıyor
+  soğuk başlangıç 0-3 s : mikrofonda yankı -28.6 dBFS | AEC sonrası -40.9 | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  yakınsama süresi (AEC+NS bastırması ≥ 20 dB): 7.0 s
+  yakınsamış 26-34 s    : mikrofonda yankı -31.9 dBFS | AEC+NS sonrası -86.6 dBFS (bastırma 54.7 dB) | kapı sonrası sıfır olmayan örnek %0.00, tepe 0.0E+000
+  tüm yalnız-hoparlör bölümleri (soğuk başlangıç ve yeniden başlatma dahil, 33 s): kapının yanlışlıkla açık kaldığı süre 0.00 s (%0.0), yankı koruma eşiği 12 dB
+
+[1] Yalnızca ben konuşuyorum (12-24 s)
+  konuşma etkin çerçevelerin %100.0'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi 0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -0.2 dB (en kötü -0.3) | kapının eklediği kayıp ort 0.00 dB (en kötü 0.00)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -0.2 dB
+
+[3] İkisi aynı anda (34-46 s)
+  mikrofonda konuşma/yankı oranı: 5.0 dB
+  konuşma etkin çerçevelerin %95.2'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi -0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -2.9 dB (en kötü -4.7) | kapının eklediği kayıp ort -0.00 dB (en kötü -0.02)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -2.1 dB
+  yankısız işlenmiş aynı cümleye göre: seviye farkı -1.9 dB | konuşma / (kalan yankı + bozulma) = 6.0 dB
+  konuşma bittikten sonraki 0,5 s (hoparlör sürüyor; kapı kapanma payı): kapı sonrası -90.5 dBFS | mikrofondaki yankı -30.8 dBFS
+
+[sessizlik] 47-50 s
+  kapı sonrası sıfır olmayan örnek %0.00 | kapısız çıkış -82.5 dBFS
+
+[4] Aygıt değişimi benzetimi: 54. saniyede zincir sıfırdan kuruldu (hoparlör çalmaya devam ediyor)
+  yeniden yakınsama süresi: 0.0 s
+  54-57 s: mikrofonda yankı -30.6 dBFS | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  58-62 s: kapı sonrası sıfır olmayan örnek %0.00
+
+### sim --echo-db -18
+=== Sentetik oda simülasyonu (yankı gecikmesi: 45 ms) ===
+Referans arabelleği: doluluk ort 20.2 ms (en az 10.8, en çok 25.1), boşalma 0, taşma 0, saat düzeltmesi 127 ppm (uygulanan kayma 150 ppm)
+Mikrofon gecikmesi geçmişi: 0.0s→10ms, 54.0s→10ms | kestirilen ham gecikme 20 ms | çıkışın konuşmaya göre toplam gecikmesi 55.0 ms
+
+[2] Yalnızca hoparlör çalıyor
+  soğuk başlangıç 0-3 s : mikrofonda yankı -40.7 dBFS | AEC sonrası -49.6 | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  yakınsama süresi (AEC+NS bastırması ≥ 20 dB): 1.8 s
+  yakınsamış 26-34 s    : mikrofonda yankı -43.9 dBFS | AEC+NS sonrası -85.1 dBFS (bastırma 41.2 dB) | kapı sonrası sıfır olmayan örnek %0.00, tepe 0.0E+000
+  tüm yalnız-hoparlör bölümleri (soğuk başlangıç ve yeniden başlatma dahil, 33 s): kapının yanlışlıkla açık kaldığı süre 0.00 s (%0.0), yankı koruma eşiği 12 dB
+
+[1] Yalnızca ben konuşuyorum (12-24 s)
+  konuşma etkin çerçevelerin %100.0'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi 0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -0.2 dB (en kötü -0.3) | kapının eklediği kayıp ort 0.00 dB (en kötü 0.00)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -0.2 dB
+
+[3] İkisi aynı anda (34-46 s)
+  mikrofonda konuşma/yankı oranı: 17.2 dB
+  konuşma etkin çerçevelerin %99.4'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi -0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -1.5 dB (en kötü -2.6) | kapının eklediği kayıp ort -0.00 dB (en kötü -0.00)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -1.3 dB
+  yankısız işlenmiş aynı cümleye göre: seviye farkı -1.1 dB | konuşma / (kalan yankı + bozulma) = 8.9 dB
+  konuşma bittikten sonraki 0,5 s (hoparlör sürüyor; kapı kapanma payı): kapı sonrası -82.9 dBFS | mikrofondaki yankı -42.7 dBFS
+
+[sessizlik] 47-50 s
+  kapı sonrası sıfır olmayan örnek %0.00 | kapısız çıkış -82.5 dBFS
+
+[4] Aygıt değişimi benzetimi: 54. saniyede zincir sıfırdan kuruldu (hoparlör çalmaya devam ediyor)
+  yeniden yakınsama süresi: 0.0 s
+  54-57 s: mikrofonda yankı -42.7 dBFS | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  58-62 s: kapı sonrası sıfır olmayan örnek %0.00
+
+### sim --echo-db 0
+=== Sentetik oda simülasyonu (yankı gecikmesi: 45 ms) ===
+Referans arabelleği: doluluk ort 20.2 ms (en az 10.8, en çok 25.1), boşalma 0, taşma 0, saat düzeltmesi 127 ppm (uygulanan kayma 150 ppm)
+Mikrofon gecikmesi geçmişi: 0.0s→10ms, 54.0s→10ms | kestirilen ham gecikme 20 ms | çıkışın konuşmaya göre toplam gecikmesi 55.0 ms
+
+[2] Yalnızca hoparlör çalıyor
+  soğuk başlangıç 0-3 s : mikrofonda yankı -22.8 dBFS | AEC sonrası -31.6 | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  yakınsama süresi (AEC+NS bastırması ≥ 20 dB): 1.8 s
+  yakınsamış 26-34 s    : mikrofonda yankı -25.9 dBFS | AEC+NS sonrası -87.0 dBFS (bastırma 61.1 dB) | kapı sonrası sıfır olmayan örnek %0.00, tepe 0.0E+000
+  tüm yalnız-hoparlör bölümleri (soğuk başlangıç ve yeniden başlatma dahil, 33 s): kapının yanlışlıkla açık kaldığı süre 0.00 s (%0.0), yankı koruma eşiği 12 dB
+
+[1] Yalnızca ben konuşuyorum (12-24 s)
+  konuşma etkin çerçevelerin %100.0'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi 0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -0.2 dB (en kötü -0.3) | kapının eklediği kayıp ort 0.00 dB (en kötü 0.00)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -0.2 dB
+
+[3] İkisi aynı anda (34-46 s)
+  mikrofonda konuşma/yankı oranı: -0.8 dB
+  konuşma etkin çerçevelerin %82.0'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi -0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -6.8 dB (en kötü -16.1) | kapının eklediği kayıp ort -0.00 dB (en kötü -0.02)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -4.2 dB
+  yankısız işlenmiş aynı cümleye göre: seviye farkı -4.0 dB | konuşma / (kalan yankı + bozulma) = 3.0 dB
+  konuşma bittikten sonraki 0,5 s (hoparlör sürüyor; kapı kapanma payı): kapı sonrası -90.3 dBFS | mikrofondaki yankı -24.7 dBFS
+
+[sessizlik] 47-50 s
+  kapı sonrası sıfır olmayan örnek %0.00 | kapısız çıkış -82.9 dBFS
+
+[4] Aygıt değişimi benzetimi: 54. saniyede zincir sıfırdan kuruldu (hoparlör çalmaya devam ediyor)
+  yeniden yakınsama süresi: 0.0 s
+  54-57 s: mikrofonda yankı -24.8 dBFS | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  58-62 s: kapı sonrası sıfır olmayan örnek %0.00
+
+### sim --ppm 0
+=== Sentetik oda simülasyonu (yankı gecikmesi: 45 ms) ===
+Referans arabelleği: doluluk ort 17.4 ms (en az 10.0, en çok 21.2), boşalma 0, taşma 0, saat düzeltmesi -12 ppm (uygulanan kayma 0 ppm)
+Mikrofon gecikmesi geçmişi: 0.0s→10ms, 54.0s→10ms | kestirilen ham gecikme 24 ms | çıkışın konuşmaya göre toplam gecikmesi 55.0 ms
+
+[2] Yalnızca hoparlör çalıyor
+  soğuk başlangıç 0-3 s : mikrofonda yankı -28.8 dBFS | AEC sonrası -50.7 | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  yakınsama süresi (AEC+NS bastırması ≥ 20 dB): 1.5 s
+  yakınsamış 26-34 s    : mikrofonda yankı -31.9 dBFS | AEC+NS sonrası -78.9 dBFS (bastırma 47.0 dB) | kapı sonrası sıfır olmayan örnek %0.00, tepe 0.0E+000
+  tüm yalnız-hoparlör bölümleri (soğuk başlangıç ve yeniden başlatma dahil, 33 s): kapının yanlışlıkla açık kaldığı süre 0.00 s (%0.0), yankı koruma eşiği 12 dB
+
+[1] Yalnızca ben konuşuyorum (12-24 s)
+  konuşma etkin çerçevelerin %100.0'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi 0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -0.2 dB (en kötü -0.3) | kapının eklediği kayıp ort 0.00 dB (en kötü 0.00)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -0.2 dB
+
+[3] İkisi aynı anda (34-46 s)
+  mikrofonda konuşma/yankı oranı: 5.2 dB
+  konuşma etkin çerçevelerin %93.2'i kapıdan geçti (621 çerçeve) | kapının konuşma enerjisine etkisi -0.00 dB
+  cümle başlangıcı (4 adet), ilk 120 ms: AEC+NS kaynaklı seviye farkı ort -5.7 dB (en kötü -16.4) | kapının eklediği kayıp ort -0.73 dB (en kötü -2.93)
+  AEC+NS'in konuşma seviyesine etkisi (çıkış − temiz konuşma): -2.5 dB
+  yankısız işlenmiş aynı cümleye göre: seviye farkı -2.3 dB | konuşma / (kalan yankı + bozulma) = 5.3 dB
+  konuşma bittikten sonraki 0,5 s (hoparlör sürüyor; kapı kapanma payı): kapı sonrası -90.4 dBFS | mikrofondaki yankı -30.7 dBFS
+
+[sessizlik] 47-50 s
+  kapı sonrası sıfır olmayan örnek %0.00 | kapısız çıkış -82.5 dBFS
+
+[4] Aygıt değişimi benzetimi: 54. saniyede zincir sıfırdan kuruldu (hoparlör çalmaya devam ediyor)
+  yeniden yakınsama süresi: 0.0 s
+  54-57 s: mikrofonda yankı -30.8 dBFS | kapı sonrası -120.0 dBFS, sıfır olmayan örnek %0.0
+  58-62 s: kapı sonrası sıfır olmayan örnek %0.00

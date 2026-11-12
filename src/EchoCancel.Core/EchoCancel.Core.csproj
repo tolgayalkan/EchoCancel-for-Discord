@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>14</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EchoCancel.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Yalnızca yerel WebRTC APM ikilisi (webrtc-apm.dll / libwebrtc-apm.so) için kullanılır.
+         Yönetilen sarmalayıcı ve SoundFlow bağımlılığı derlemeye alınmaz; P/Invoke katmanı ApmNative.cs içindedir. -->
+    <PackageReference Include="SoundFlow.Extensions.WebRtc.Apm" Version="1.4.2" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgSoundFlow_Extensions_WebRtc_Apm)/runtimes/win-x64/native/webrtc-apm.dll" Link="webrtc-apm.dll" CopyToOutputDirectory="PreserveNewest" Pack="false" Visible="false" />
+    <None Condition="'$(OS)' != 'Windows_NT'" Include="$(PkgSoundFlow_Extensions_WebRtc_Apm)/runtimes/linux-x64/native/libwebrtc-apm.so" Link="runtimes/linux-x64/native/libwebrtc-apm.so" CopyToOutputDirectory="PreserveNewest" Pack="false" Visible="false" />
+  </ItemGroup>
+</Project>
